@@ -30,6 +30,7 @@ public class Border extends Formatter {
 	
 	
 	public Border() {
+		super();
 	}
 	
 	

@@ -2,18 +2,15 @@ package com.oreilly.common.interaction.text.pages;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import com.oreilly.common.interaction.text.Interaction;
 import com.oreilly.common.interaction.text.InteractionPage;
 import com.oreilly.common.interaction.text.TitledInteractionPage;
-import com.oreilly.common.interaction.text.formatter.Highlighter;
 import com.oreilly.common.interaction.text.interfaces.Choices;
-import com.oreilly.common.interaction.text.interfaces.HighlightClient;
 import com.oreilly.common.interaction.text.validator.ChoicesValidator;
 
 
-abstract public class MenuPage extends TitledInteractionPage implements HighlightClient, Choices {
+abstract public class MenuPage extends TitledInteractionPage implements Choices {
 	
 	public HashMap< String, InteractionPage[] > choices = new HashMap< String, InteractionPage[] >();
 	public boolean loopbackOnCompletion = false;
@@ -22,15 +19,6 @@ abstract public class MenuPage extends TitledInteractionPage implements Highligh
 	public MenuPage() {
 		super();
 		withValidator( new ChoicesValidator() );
-		withFormatter( new Highlighter( this ) );
-	}
-	
-	
-	@Override
-	public HashMap< String, Iterator< String >> getHighlightList() {
-		HashMap< String, Iterator< String >> result = new HashMap< String, Iterator< String >>();
-		result.put( Highlighter.PLAYER_CHOICES, choices.keySet().iterator() );
-		return result;
 	}
 	
 	

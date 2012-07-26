@@ -9,6 +9,10 @@ abstract public class Formatter {
 	public Formatter nextInChain = null;
 	
 	
+	public Formatter() {
+	}
+	
+	
 	// chained init functions...
 	
 	public Formatter chain( Formatter formatter ) {

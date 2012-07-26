@@ -10,7 +10,7 @@ import com.oreilly.common.interaction.text.validator.Validator;
 
 abstract public class InteractionPage {
 	
-	static public final int MAX_LINES = 40;
+	static public final int MAX_LINES = 20;
 	
 	public Formatter formatter = null;
 	public Validator validator = null;

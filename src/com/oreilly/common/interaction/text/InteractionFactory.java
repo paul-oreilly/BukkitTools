@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.oreilly.common.interaction.text.Interaction.MessageType;
 import com.oreilly.common.interaction.text.formatter.Formatter;
 import com.oreilly.common.interaction.text.validator.Validator;
 
@@ -22,6 +24,8 @@ public class InteractionFactory {
 	public Set< String > returnStrings = new HashSet< String >();
 	public String nonPlayerExclusionMessage = null;
 	public HashMap< String, Object > style = new HashMap< String, Object >();
+	public HashMap< MessageType, ArrayList< ChatColor >> messageStyles =
+			new HashMap< MessageType, ArrayList< ChatColor >>();
 	
 	
 	public InteractionFactory() {
@@ -43,11 +47,35 @@ public class InteractionFactory {
 				.withExitStrings( exitStrings )
 				.withReturnStrings( returnStrings )
 				.withPages( pagesCopy )
-				.withStyles( style );
+				.withStyles( style )
+				.withMessageStyles( messageStyles );
 	}
 	
 	
 	// chained init methods
+	
+	public InteractionFactory withMessageStyle( MessageType type, ChatColor... style ) {
+		ArrayList< ChatColor > styleList = new ArrayList< ChatColor >();
+		for ( ChatColor c : style )
+			styleList.add( c );
+		messageStyles.put( type, styleList );
+		return this;
+	}
+	
+	
+	public InteractionFactory withMessageStyles( HashMap< MessageType, ArrayList< ChatColor >> styles ) {
+		for ( MessageType type : styles.keySet() ) {
+			ArrayList< ChatColor > source = styles.get( type );
+			ArrayList< ChatColor > list = new ArrayList< ChatColor >();
+			if ( source != null ) {
+				for ( ChatColor c : source )
+					list.add( c );
+				messageStyles.put( type, list );
+			}
+		}
+		return this;
+	}
+	
 	
 	public InteractionFactory withExitSequence( String... sequence ) {
 		for ( String item : sequence )

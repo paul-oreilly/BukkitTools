@@ -6,15 +6,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 
 /*
  * A class to bring html like <tags> into strings, for nestled color replacement.
  * eg: "<color YELLOW>Hello <color RED>user</color>!" should end with the "!" colored yellow.
  */
+// TODO: Later - have static settings for "<" and ">" character replacements, and
+//  strip away and style tags (content between them) that doesn't get processed
+//  (so can gracefully degrade if an upstream style engine fails)
 
-public class Style {
+public class ColorTool {
 	
 	enum TagType {
 		OPENING, CLOSING, NEWLINE;
@@ -79,6 +82,10 @@ public class Style {
 			colorTranslations.put( String.valueOf( color.getChar() ), color.toString() );
 			colorTranslations.put( String.valueOf( color.ordinal() ), color.toString() );
 		}
+		// for instances where a style should be ignored...
+		colorTranslations.put( "ignore", "" );
+		colorTranslations.put( "null", "" );
+		colorTranslations.put( "undefined", "" );
 	}
 	
 	
@@ -92,10 +99,23 @@ public class Style {
 	}
 	
 	
-	public static void sendToPlayer( Player player, String rawText ) {
+	public static void sendToUser( CommandSender user, String rawText ) {
 		String styled = apply( rawText, true );
-		for ( String line : styled.split( "\n" ) )
-			player.sendMessage( line );
+		// strip away any trailing blank lines (only send newlines when encountering real text)
+		// TODO: When dealing with console, strip away newlines before text also.
+		int newlineCount = 0;
+		for ( String line : styled.split( "\n" ) ) {
+			if ( ChatColor.stripColor( line ).trim().length() == 0 )
+				newlineCount++;
+			else {
+				if ( newlineCount > 0 ) {
+					for ( int i = 0; i < newlineCount; i++ )
+						user.sendMessage( "" );
+					newlineCount = 0;
+				}
+				user.sendMessage( line );
+			}
+		}
 	}
 	
 	
@@ -114,7 +134,6 @@ public class Style {
 				index = rawText.indexOf( tag.text, index + 1 );
 			}
 		}
-		System.out.println( "com.oreilly.common.text.Style DEBUG: " + matches.size() + " style items" );
 		// sort them
 		Collections.sort( matches );
 		// pass over the string, and
@@ -154,6 +173,8 @@ public class Style {
 					continue;
 				}
 				case NEWLINE: {
+					// add the previous text, and update lastIndex
+					result += rawText.substring( lastIndex, delta.index );
 					lastIndex = delta.index + 1;
 					if ( useStyles )
 						result += "\n" + styleStack.get( styleStack.size() - 1 );
@@ -171,13 +192,18 @@ public class Style {
 	
 	// public utility functions
 	
-	public String begins( ChatColor color ) {
+	public static String begin( ChatColor color ) {
 		return "<color " + color.name() + ">";
 	}
 	
 	
-	public String ends() {
+	public static String end() {
 		return "</color>";
+	}
+	
+	
+	public static String style( ChatColor color, String data ) {
+		return begin( color ) + data + end();
 	}
 	
 }

@@ -18,14 +18,20 @@ import com.oreilly.common.interaction.text.error.InterfaceDependencyError;
 import com.oreilly.common.interaction.text.error.ValidationFailedError;
 import com.oreilly.common.interaction.text.formatter.Formatter;
 import com.oreilly.common.interaction.text.validator.Validator;
+import com.oreilly.common.text.ColorTool;
 
 
 public class Interaction {
 	
+	enum MessageType {
+		NORMAL, DEBUG, ERROR, RESPONSE;
+	}
+	
 	static public final String STYLE_ERROR_COLOR = "errorColor";
 	static public ChatColor defaultErrorColor = ChatColor.DARK_RED;
 	
-	static public HashMap< CommandSender, Interaction > currentInteractions = new HashMap< CommandSender, Interaction >();
+	static public HashMap< CommandSender, Interaction > currentInteractions =
+			new HashMap< CommandSender, Interaction >();
 	static private boolean eventListenerRegisterd = false;
 	
 	public Formatter formatter = null;
@@ -38,6 +44,10 @@ public class Interaction {
 	public Set< String > returnStrings = new HashSet< String >();
 	public List< String > chatBuffer = new ArrayList< String >();
 	public HashMap< String, Object > style = new HashMap< String, Object >();
+	
+	// default text colors for each message type
+	public HashMap< MessageType, ArrayList< ChatColor >> messageStyles =
+			new HashMap< MessageType, ArrayList< ChatColor >>();
 	
 	// called if current page is still 'holding' the player interaction
 	public boolean pageWaitingForInput = false;
@@ -83,6 +93,11 @@ public class Interaction {
 		this();
 		this.user = user;
 		currentInteractions.put( user, this );
+		// load default message colors
+		withMessageStyle( MessageType.NORMAL, ChatColor.WHITE );
+		withMessageStyle( MessageType.DEBUG, ChatColor.BLUE, ChatColor.ITALIC );
+		withMessageStyle( MessageType.ERROR, ChatColor.DARK_RED );
+		withMessageStyle( MessageType.RESPONSE, ChatColor.GRAY );
 	}
 	
 	
@@ -133,9 +148,6 @@ public class Interaction {
 				validatedInput = currentPage.validator.startValidation( validatedInput, currentPage );
 			// pass input to the page to take action on
 			String reply = currentPage.acceptValidatedInput( this, validatedInput );
-			if ( reply != null )
-				if ( !reply.isEmpty() )
-					user.sendMessage( reply.split( "\n" ) );
 			// progress to the next page.. unless the current page has a 'lock' on interaction
 			if ( pageWaitingForInput ) {
 				pageWaitingForInput = false;
@@ -148,6 +160,10 @@ public class Interaction {
 			}
 			// show the next / repeat page
 			display();
+			// if we had a reply from the last page, show it now (so the bottom of this page)
+			if ( reply != null )
+				if ( !reply.isEmpty() )
+					sendMessage( MessageType.RESPONSE, user, reply );
 		} catch ( ValidationFailedError error ) {
 			// display the current page again
 			display();
@@ -157,21 +173,21 @@ public class Interaction {
 			else
 				sendValidationError( error.message, input );
 		} catch ( InterfaceDependencyError error ) {
-			user.sendMessage( "Internal error - unmet interface dependency " + error.interfaceRequired );
+			sendMessage( MessageType.ERROR, user, "Unmet interface dependency " + error.interfaceRequired );
 		} catch ( ContextDataRequired error ) {
 			// show the previous page, then an error about context
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
-			user.sendMessage( ChatColor.DARK_RED + "ERROR: Unable to display page, as required context " +
+			sendMessage( MessageType.ERROR, user, "Unable to display page, as required context " +
 					error.key + "(" + error.classType + ") does not exist" );
 		} catch ( GeneralDisplayError error ) {
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
-			user.sendMessage( ChatColor.DARK_RED + "ERROR: " + error.reason );
+			sendMessage( MessageType.ERROR, user, error.reason );
 		}
 	}
 	
@@ -187,13 +203,13 @@ public class Interaction {
 		// replace variables that may be in the message
 		message = errorColor + message.replace( "%input", input );
 		// send the message to the player
-		user.sendMessage( message.split( "\n" ) );
+		sendMessage( MessageType.ERROR, user, message );
 	}
 	
 	
 	public void begin() {
 		if ( pages.size() == 0 ) {
-			user.sendMessage( "DEBUG: No pages exist for this interaction" );
+			sendMessage( MessageType.DEBUG, user, "No pages exist for this interaction" );
 			return;
 		}
 		currentPage = pages.remove( 0 );
@@ -214,21 +230,21 @@ public class Interaction {
 			if ( formatter != null )
 				currentDisplay = formatter.startFormatting( currentDisplay, currentPage, this );
 			// send the display to the user
-			user.sendMessage( currentDisplay.split( "\n" ) );
+			sendMessage( MessageType.NORMAL, user, currentDisplay );
 		} catch ( ContextDataRequired error ) {
 			// show the previous page, then an error about context
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
-			user.sendMessage( ChatColor.DARK_RED + "ERROR: Unable to display next page, as required context " +
+			sendMessage( MessageType.ERROR, user, "Unable to display next page, as required context " +
 					error.key + "(" + error.classType + ") does not exist" );
 		} catch ( GeneralDisplayError error ) {
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
-			user.sendMessage( ChatColor.DARK_RED + "ERROR: " + error.reason );
+			sendMessage( MessageType.ERROR, user, error.reason );
 		}
 	}
 	
@@ -254,6 +270,29 @@ public class Interaction {
 	
 	
 	// chained init methods
+	
+	public Interaction withMessageStyle( MessageType type, ChatColor... style ) {
+		ArrayList< ChatColor > styleList = new ArrayList< ChatColor >();
+		for ( ChatColor c : style )
+			styleList.add( c );
+		messageStyles.put( type, styleList );
+		return this;
+	}
+	
+	
+	public Interaction withMessageStyles( HashMap< MessageType, ArrayList< ChatColor >> styles ) {
+		for ( MessageType type : styles.keySet() ) {
+			ArrayList< ChatColor > source = styles.get( type );
+			ArrayList< ChatColor > list = new ArrayList< ChatColor >();
+			if ( source != null ) {
+				for ( ChatColor c : source )
+					list.add( c );
+				messageStyles.put( type, list );
+			}
+		}
+		return this;
+	}
+	
 	
 	public Interaction withFormatter( Formatter formatter ) {
 		if ( this.formatter == null )
@@ -376,4 +415,12 @@ public class Interaction {
 			user.sendMessage( message.split( "\n" ) );
 	}
 	
+	
+	protected void sendMessage( MessageType type, CommandSender to, String message ) {
+		// get the style to use (we have defaults, so no null entries)
+		ArrayList< ChatColor > styles = messageStyles.get( type );
+		for ( ChatColor color : styles )
+			message = ColorTool.style( color, message );
+		ColorTool.sendToUser( to, message );
+	}
 }
