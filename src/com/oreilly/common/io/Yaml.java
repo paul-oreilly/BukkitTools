@@ -11,23 +11,21 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Yaml {
 	
-	public static YamlConfiguration loadYamlFile( File file, Logger errorLog, String prefix ) {
-		if ( prefix == null )
-			prefix = "com.oreilly.common.io->loadYamlFile: ";
+	public static YamlConfiguration loadYamlFile( File file, Logger errorLog ) {
 		if ( !file.exists() ) {
 			try {
 				if ( errorLog != null )
-					errorLog.info( prefix + "File " + file.getAbsolutePath() + " does not exist, creating.." );
+					errorLog.info( "File " + file.getAbsolutePath() + " does not exist, creating.." );
 				File parent = file.getParentFile();
 				if ( file.getParentFile().exists() == false ) {
 					parent.mkdirs();
 					if ( errorLog != null )
-						errorLog.info(prefix + "Directory " + parent.getAbsolutePath() + " does not exist, creating..");
+						errorLog.info( "Directory " + parent.getAbsolutePath() + " does not exist, creating..");
 				}
 				file.createNewFile();
 			} catch ( IOException e ) {
 				if ( errorLog != null )
-					errorLog.warning( prefix + "IO Error while trying to create " + file.getAbsolutePath());
+					errorLog.warning( "IO Error while trying to create " + file.getAbsolutePath());
 				e.printStackTrace();
 			}
 		}
@@ -36,15 +34,15 @@ public class Yaml {
 			config.load( file );
 		} catch ( FileNotFoundException e ) {
 			if ( errorLog != null )
-				errorLog.warning( prefix + "IO Error (File not found) while trying to load " + file.getAbsolutePath());
+				errorLog.warning( "IO Error (File not found) while trying to load " + file.getAbsolutePath());
 			e.printStackTrace();
 		} catch ( IOException e ) {
 			if ( errorLog != null )
-				errorLog.warning( prefix + "IO Error (IO Exception) while trying to load " + file.getAbsolutePath());
+				errorLog.warning( "IO Error (IO Exception) while trying to load " + file.getAbsolutePath());
 			e.printStackTrace();
 		} catch ( InvalidConfigurationException e ) {
 			if ( errorLog != null )
-				errorLog.warning( prefix + "Invlaid yaml file encountered while trying to load " + file.getAbsolutePath());
+				errorLog.warning( "Invlaid yaml file encountered while trying to load " + file.getAbsolutePath());
 			e.printStackTrace();
 		}
 		return config;
