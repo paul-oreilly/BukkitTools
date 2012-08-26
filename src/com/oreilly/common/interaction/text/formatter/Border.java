@@ -7,7 +7,6 @@ import org.bukkit.ChatColor;
 
 import com.oreilly.common.interaction.text.Interaction;
 import com.oreilly.common.interaction.text.InteractionPage;
-import com.oreilly.common.interaction.text.TitledInteractionPage;
 
 
 // TODO: Interface with style's based on context data
@@ -82,10 +81,9 @@ public class Border extends Formatter {
 		HashMap< String, String > characterStyles = getCharacterStyles( page );
 		HashMap< String, String > colorStyles = getChatColorStyles( page );
 		// title, if one exists
-		if ( page instanceof TitledInteractionPage ) {
+		if ( page.hasTitle ) {
 			result += makeLine( LineType.TITLE_TOP, characterStyles, colorStyles );
-			TitledInteractionPage withTitle = (TitledInteractionPage)page;
-			result += colorStyles.get( COLOR_TITLE_TEXT ) + "  " + withTitle.getTitle( interaction ) + "\n";
+			result += colorStyles.get( COLOR_TITLE_TEXT ) + "  " + page.getTitle( interaction ) + "\n";
 			result += makeLine( LineType.TITLE_BOTTOM, characterStyles, colorStyles );
 		}
 		// page body

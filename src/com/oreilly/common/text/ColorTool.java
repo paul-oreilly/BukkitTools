@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 
 
 /*
@@ -99,26 +98,6 @@ public class ColorTool {
 	}
 	
 	
-	public static void sendToUser( CommandSender user, String rawText ) {
-		String styled = apply( rawText, true );
-		// strip away any trailing blank lines (only send newlines when encountering real text)
-		// TODO: When dealing with console, strip away newlines before text also.
-		int newlineCount = 0;
-		for ( String line : styled.split( "\n" ) ) {
-			if ( ChatColor.stripColor( line ).trim().length() == 0 )
-				newlineCount++;
-			else {
-				if ( newlineCount > 0 ) {
-					for ( int i = 0; i < newlineCount; i++ )
-						user.sendMessage( "" );
-					newlineCount = 0;
-				}
-				user.sendMessage( line );
-			}
-		}
-	}
-	
-	
 	protected static String apply( String rawText, boolean useStyles ) {
 		LinkedList< String > styleStack = new LinkedList< String >();
 		// the default fallback color is white.. 
@@ -202,7 +181,7 @@ public class ColorTool {
 	}
 	
 	
-	public static String style( ChatColor color, String data ) {
+	public static String color( ChatColor color, String data ) {
 		return begin( color ) + data + end();
 	}
 	

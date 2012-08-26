@@ -1,4 +1,4 @@
-package com.oreilly.common.interaction.text;
+package com.oreilly.common.interaction.text.helpers;
 
 import java.util.LinkedList;
 

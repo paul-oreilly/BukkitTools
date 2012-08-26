@@ -1,8 +1,10 @@
 package com.oreilly.common.interaction.text;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -12,13 +14,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.plugin.Plugin;
 
+import com.oreilly.common.interaction.text.error.AbortInteraction;
 import com.oreilly.common.interaction.text.error.ContextDataRequired;
-import com.oreilly.common.interaction.text.error.GeneralDisplayError;
+import com.oreilly.common.interaction.text.error.GeneralInteractionError;
 import com.oreilly.common.interaction.text.error.InterfaceDependencyError;
 import com.oreilly.common.interaction.text.error.ValidationFailedError;
 import com.oreilly.common.interaction.text.formatter.Formatter;
 import com.oreilly.common.interaction.text.validator.Validator;
 import com.oreilly.common.text.ColorTool;
+import com.oreilly.common.text.MessageTool;
+import com.oreilly.common.text.VariableTool;
 
 
 public class Interaction {
@@ -44,6 +49,9 @@ public class Interaction {
 	public Set< String > returnStrings = new HashSet< String >();
 	public List< String > chatBuffer = new ArrayList< String >();
 	public HashMap< String, Object > style = new HashMap< String, Object >();
+	public HashMap< String, Object > variables = new HashMap< String, Object >();
+	public HashMap< String, ChatColor > tagsToColors = new HashMap< String, ChatColor >();
+	public HashMap< String, String > translation = null;
 	
 	// default text colors for each message type
 	public HashMap< MessageType, ArrayList< ChatColor >> messageStyles =
@@ -106,7 +114,7 @@ public class Interaction {
 	}
 	
 	
-	public void interactionComplete() {
+	public void endInteraction() {
 		sendQueuedMessages();
 		currentInteractions.remove( user );
 		formatter = null;
@@ -122,7 +130,7 @@ public class Interaction {
 		String universalInput = input.toLowerCase().trim();
 		// exit the conversation if input matches one of the exit strings
 		if ( exitStrings.contains( universalInput ) ) {
-			interactionComplete();
+			endInteraction();
 			return;
 		}
 		// return to the previous page, if input matches one of the return strings
@@ -136,7 +144,7 @@ public class Interaction {
 		}
 		// exit the conversation if there is no current page
 		if ( currentPage == null ) {
-			interactionComplete();
+			endInteraction();
 			return;
 		}
 		try {
@@ -147,7 +155,7 @@ public class Interaction {
 			if ( currentPage.validator != null )
 				validatedInput = currentPage.validator.startValidation( validatedInput, currentPage );
 			// pass input to the page to take action on
-			String reply = currentPage.acceptValidatedInput( this, validatedInput );
+			String reply = currentPage.inputHandler( this, validatedInput );
 			// progress to the next page.. unless the current page has a 'lock' on interaction
 			if ( pageWaitingForInput ) {
 				pageWaitingForInput = false;
@@ -182,12 +190,15 @@ public class Interaction {
 			}
 			sendMessage( MessageType.ERROR, user, "Unable to display page, as required context " +
 					error.key + "(" + error.classType + ") does not exist" );
-		} catch ( GeneralDisplayError error ) {
+		} catch ( GeneralInteractionError error ) {
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
 			sendMessage( MessageType.ERROR, user, error.reason );
+		} catch ( AbortInteraction error ) {
+			sendMessage( MessageType.ERROR, user, error.message );
+			endInteraction();
 		}
 	}
 	
@@ -219,7 +230,7 @@ public class Interaction {
 	
 	protected void display() {
 		if ( currentPage == null ) {
-			interactionComplete();
+			endInteraction();
 			return;
 		}
 		currentPage.style.putAll( style );
@@ -239,12 +250,15 @@ public class Interaction {
 			}
 			sendMessage( MessageType.ERROR, user, "Unable to display next page, as required context " +
 					error.key + "(" + error.classType + ") does not exist" );
-		} catch ( GeneralDisplayError error ) {
+		} catch ( GeneralInteractionError error ) {
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
 			sendMessage( MessageType.ERROR, user, error.reason );
+		} catch ( AbortInteraction error ) {
+			sendMessage( MessageType.ERROR, user, error.message );
+			endInteraction();
 		}
 	}
 	
@@ -253,6 +267,14 @@ public class Interaction {
 	
 	public Interaction nextPage( InteractionPage page ) {
 		pages.add( 0, page );
+		return this;
+	}
+	
+	
+	public Interaction addPages( Collection< InteractionPage > collection ) {
+		Iterator< InteractionPage > iter = collection.iterator();
+		while ( iter.hasNext() )
+			pages.add( 0, iter.next() );
 		return this;
 	}
 	
@@ -380,6 +402,12 @@ public class Interaction {
 	}
 	
 	
+	public Interaction withTranslation( HashMap< String, String > translation ) {
+		this.translation = translation;
+		return this;
+	}
+	
+	
 	// Helper functions...
 	
 	public < T > T getContextData( Class< T > tClass, Interaction interaction, String key ) throws ContextDataRequired {
@@ -408,6 +436,35 @@ public class Interaction {
 	}
 	
 	
+	public String parseMessage( String message ) {
+		// get a list of variables
+		HashMap< String, Object > combinedVariables = new HashMap< String, Object >();
+		// add any translation information
+		if ( translation != null )
+			combinedVariables.putAll( translation );
+		// add interaction level variables
+		combinedVariables.putAll( variables ); //TODO: Have interaction add things like "playername" etc auto
+		// add variables from the current page
+		HashMap< String, Object > pageVariables = currentPage.getVariables( this );
+		if ( pageVariables != null )
+			combinedVariables.putAll( pageVariables );
+		// apply variables to the text
+		message = VariableTool.applyVariables( combinedVariables, message );
+		// Replace style tags...
+		for ( String key : tagsToColors.keySet() ) {
+			message = message.replace( MessageTool.tagOpen( key ), ColorTool.begin( tagsToColors.get( key ) ) );
+			message = message.replace( MessageTool.tagClose( key ), ColorTool.end() );
+		}
+		// strip out any remaining tags
+		message = MessageTool.stripTags( message );
+		// TODO: Strip out any unfilled variables
+		
+		// add color
+		message = ColorTool.apply( message );
+		return message;
+	}
+	
+	
 	// internal methods
 	
 	protected void sendQueuedMessages() {
@@ -417,10 +474,9 @@ public class Interaction {
 	
 	
 	protected void sendMessage( MessageType type, CommandSender to, String message ) {
-		// get the style to use (we have defaults, so no null entries)
-		ArrayList< ChatColor > styles = messageStyles.get( type );
-		for ( ChatColor color : styles )
-			message = ColorTool.style( color, message );
-		ColorTool.sendToUser( to, message );
+		// TODO: depending on type, add a color style
+		message = parseMessage( message );
+		// send to user
+		MessageTool.sendToUser( to, message );
 	}
 }
