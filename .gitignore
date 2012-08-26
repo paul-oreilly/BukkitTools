@@ -8,3 +8,6 @@
 # Folders #
 /bin/
 /lib/
+
+# refactor settings file
+refactorSettings.py
