@@ -1,4 +1,6 @@
 *.class
+*pyc
+
 
 # Package Files #
 *.jar
@@ -11,3 +13,4 @@
 
 # refactor settings file
 refactorSettings.py
+
