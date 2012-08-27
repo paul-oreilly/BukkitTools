@@ -70,8 +70,10 @@ abstract public class InteractionPage {
 	public String getTranslationKey() {
 		if ( translationKey != null )
 			return translationKey;
-		else
-			return this.getClass().getName();
+		else {
+			String[] split = this.getClass().getName().split(".");
+			return split[ split.length - 1 ];
+		}
 	}
 	
 	
@@ -84,7 +86,7 @@ abstract public class InteractionPage {
 	// Title functions
 	
 	public String titleOverrideKey() {
-		return getTranslationKey() + "_titleOverride";
+		return getTranslationKey() + ".titleOverride";
 	}
 	
 	
@@ -94,7 +96,7 @@ abstract public class InteractionPage {
 			return overrideObj.toString();
 		else {
 			if ( translatableTitle )
-				return VariableTool.variable( getTranslationKey() + "_title" );
+				return VariableTool.variable( getTranslationKey() + ".title" );
 			else
 				return defaultTitle;
 		}
@@ -149,7 +151,7 @@ abstract public class InteractionPage {
 		if ( translatableBody ) {
 			String customKey = getCustomTranslationKey( interaction );
 			if ( customKey == null )
-				text = VariableTool.variable( getTranslationKey() + "_text" );
+				text = VariableTool.variable( getTranslationKey() + ".text" );
 			else
 				text = customKey;
 		}

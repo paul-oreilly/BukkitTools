@@ -19,7 +19,7 @@ public class VariablePrefixer {
 	
 	
 	public VariablePrefixer( InteractionPage page ) {
-		prefix = page.getTranslationKey();
+		prefix = page.getTranslationKey() + ".";
 	}
 	
 	
