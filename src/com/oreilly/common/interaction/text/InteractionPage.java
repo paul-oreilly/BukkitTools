@@ -119,14 +119,14 @@ abstract public class InteractionPage {
 					choices = generateChoices( interaction );
 				String text = generateDisplayBody( interaction ) + "\n";
 				String choiceText = interaction.parseMessage(
-						StringUtils.join( choices.generateChoiceList(), "\n" ) );
-				if ( text.split( "\n" ).length + choiceText.split( "\n" ).length > maxLines ) {
+						StringUtils.join( choices.generateChoiceList(), "" ) );
+				if ( text.split( "\n" ).length + choiceText.split( "\n" ).length + 1> maxLines ) {
 					// we'll need a paginator
 					paginator = new PaginationAssistant( choiceText, maxLines, text );
 					interaction.context.put( getTranslationKey() + "_paginator", paginator );
 					return paginator.getDisplayText();
 				} else
-					return text + choiceText;
+					return text + "\n" + choiceText;
 			} else {
 				String text = generateDisplayBody( interaction );
 				if ( text.split( "\n" ).length > maxLines ) {

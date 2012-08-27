@@ -453,9 +453,11 @@ public class Interaction {
 		// add interaction level variables
 		combinedVariables.putAll( variables ); //TODO: Have interaction add things like "playername" etc auto
 		// add variables from the current page
-		HashMap< String, Object > pageVariables = currentPage.getVariables( this );
-		if ( pageVariables != null )
-			combinedVariables.putAll( pageVariables );
+		if ( currentPage != null ) {
+			HashMap< String, Object > pageVariables = currentPage.getVariables( this );
+			if ( pageVariables != null )
+				combinedVariables.putAll( pageVariables );
+		}
 		// apply variables to the text
 		if ( DEBUG ) {
 			System.out.println("Variables:");
