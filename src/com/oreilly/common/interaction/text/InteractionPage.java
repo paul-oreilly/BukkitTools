@@ -71,7 +71,7 @@ abstract public class InteractionPage {
 		if ( translationKey != null )
 			return translationKey;
 		else {
-			String[] split = this.getClass().getName().split(".");
+			String[] split = this.getClass().getName().split("\\.");
 			return split[ split.length - 1 ];
 		}
 	}

@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import com.oreilly.common.interaction.text.Interaction.MessageType;
 import com.oreilly.common.interaction.text.formatter.Formatter;
 import com.oreilly.common.interaction.text.validator.Validator;
+import com.oreilly.common.text.Translater;
 
 
 public class InteractionFactory {
@@ -26,6 +27,8 @@ public class InteractionFactory {
 	public HashMap< String, Object > style = new HashMap< String, Object >();
 	public HashMap< MessageType, ArrayList< ChatColor >> messageStyles =
 			new HashMap< MessageType, ArrayList< ChatColor >>();
+	public Translater translator = null;
+	public String defaultTranslation = null;
 	
 	
 	public InteractionFactory() {
@@ -48,7 +51,8 @@ public class InteractionFactory {
 				.withReturnStrings( returnStrings )
 				.withPages( pagesCopy )
 				.withStyles( style )
-				.withMessageStyles( messageStyles );
+				.withMessageStyles( messageStyles )
+				.withTranslator( translator, defaultTranslation );
 	}
 	
 	
@@ -148,6 +152,12 @@ public class InteractionFactory {
 	
 	public InteractionFactory withStyle( String key, Object style ) {
 		this.style.put( key, style );
+		return this;
+	}
+	
+	public InteractionFactory withTranslation( Translater translator, String defaultTranslation ) {
+		this.defaultTranslation = defaultTranslation;
+		this.translator = translator;
 		return this;
 	}
 	

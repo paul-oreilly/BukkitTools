@@ -23,6 +23,7 @@ import com.oreilly.common.interaction.text.formatter.Formatter;
 import com.oreilly.common.interaction.text.validator.Validator;
 import com.oreilly.common.text.ColorTool;
 import com.oreilly.common.text.MessageTool;
+import com.oreilly.common.text.Translater;
 import com.oreilly.common.text.VariableTool;
 
 
@@ -53,7 +54,8 @@ public class Interaction {
 	public HashMap< String, Object > style = new HashMap< String, Object >();
 	public HashMap< String, Object > variables = new HashMap< String, Object >();
 	public HashMap< String, ChatColor > tagsToColors = new HashMap< String, ChatColor >();
-	public HashMap< String, String > translation = null;
+	public Translater translator = null;
+	public String translation = null;
 	
 	// default text colors for each message type
 	public HashMap< MessageType, ArrayList< ChatColor >> messageStyles =
@@ -404,7 +406,8 @@ public class Interaction {
 	}
 	
 	
-	public Interaction withTranslation( HashMap< String, String > translation ) {
+	public Interaction withTranslator( Translater translator, String translation ) {
+		this.translator = translator;
 		this.translation = translation;
 		return this;
 	}
@@ -444,8 +447,9 @@ public class Interaction {
 		// get a list of variables
 		HashMap< String, Object > combinedVariables = new HashMap< String, Object >();
 		// add any translation information
-		if ( translation != null )
-			combinedVariables.putAll( translation );
+		if ( translator != null )
+			if ( translation != null )
+				combinedVariables.putAll( translator.getTranslation( translation ));
 		// add interaction level variables
 		combinedVariables.putAll( variables ); //TODO: Have interaction add things like "playername" etc auto
 		// add variables from the current page
