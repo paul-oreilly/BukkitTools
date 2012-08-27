@@ -54,7 +54,7 @@ public class Choices {
 		// making a list... 
 		for ( String key : choices.keySet() ) {
 			Choice choice = choices.get( key );
-			result.add( prependToNumber + key + appendToNumber + choice.text );
+			result.add( 0, prependToNumber + key + appendToNumber + choice.text );
 		}
 		return result;
 	}

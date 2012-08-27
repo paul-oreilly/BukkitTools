@@ -30,8 +30,11 @@ public class Translater {
 				TranslationRecord record = new TranslationRecord( name );
 				if ( inheritsFrom != null )
 					record.inheritsFrom.addAll( inheritsFrom );
-				for ( String key : content.getKeys( false ) )
-					record.rawTranslations.put( key, content.get( key ).toString() );
+				for ( String key : content.getKeys( true ) ) {
+					Object item = content.get( key );
+						if (( item instanceof String ) | ( item instanceof Double ) | ( item instanceof Integer ))
+							record.rawTranslations.put( key, item.toString());
+				}
 			}
 		}
 		// Compile translations...
