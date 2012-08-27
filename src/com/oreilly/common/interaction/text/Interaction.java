@@ -28,6 +28,8 @@ import com.oreilly.common.text.VariableTool;
 
 public class Interaction {
 	
+	public static final boolean DEBUG = false;
+	
 	enum MessageType {
 		NORMAL, DEBUG, ERROR, RESPONSE;
 	}
@@ -437,6 +439,8 @@ public class Interaction {
 	
 	
 	public String parseMessage( String message ) {
+		if ( DEBUG )
+			System.out.println("Raw message: " + message );
 		// get a list of variables
 		HashMap< String, Object > combinedVariables = new HashMap< String, Object >();
 		// add any translation information
@@ -449,6 +453,11 @@ public class Interaction {
 		if ( pageVariables != null )
 			combinedVariables.putAll( pageVariables );
 		// apply variables to the text
+		if ( DEBUG ) {
+			System.out.println("Variables:");
+			for ( String key : combinedVariables.keySet())
+				System.out.println("  " + key + ": " + combinedVariables.get(key));
+		}
 		message = VariableTool.applyVariables( combinedVariables, message );
 		// Replace style tags...
 		for ( String key : tagsToColors.keySet() ) {

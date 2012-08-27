@@ -149,7 +149,7 @@ abstract public class InteractionPage {
 		if ( translatableBody ) {
 			String customKey = getCustomTranslationKey( interaction );
 			if ( customKey == null )
-				text = getTranslationKey() + "_text";
+				text = VariableTool.variable( getTranslationKey() + "_text" );
 			else
 				text = customKey;
 		}
