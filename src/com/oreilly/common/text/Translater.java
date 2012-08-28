@@ -28,6 +28,7 @@ public class Translater {
 			ConfigurationSection content = config.getConfigurationSection( TranslationFileConstants.content );
 			if ( ( name != null ) & ( content != null ) ) {
 				TranslationRecord record = new TranslationRecord( name );
+				translations.put( name, record );
 				if ( inheritsFrom != null )
 					record.inheritsFrom.addAll( inheritsFrom );
 				for ( String key : content.getKeys( true ) ) {
@@ -39,6 +40,7 @@ public class Translater {
 		}
 		// Compile translations...
 		LinkedList< TranslationRecord > toCompile = new LinkedList< TranslationRecord >();
+		toCompile.addAll( translations.values() );
 		boolean progress = true;
 		TranslationRecord parent = null;
 		while ( progress ) {
