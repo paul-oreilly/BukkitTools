@@ -25,7 +25,6 @@ import com.oreilly.common.text.ColorTool;
 import com.oreilly.common.text.MessageTool;
 import com.oreilly.common.text.Translater;
 import com.oreilly.common.text.VariableTool;
-import com.oreilly.mmogroup.bukkitTools.interaction.text.Interaction.MessageType;
 
 
 public class Interaction {
