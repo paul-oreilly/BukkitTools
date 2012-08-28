@@ -25,6 +25,7 @@ import com.oreilly.common.text.ColorTool;
 import com.oreilly.common.text.MessageTool;
 import com.oreilly.common.text.Translater;
 import com.oreilly.common.text.VariableTool;
+import com.oreilly.mmogroup.bukkitTools.interaction.text.Interaction.MessageType;
 
 
 public class Interaction {
@@ -69,6 +70,9 @@ public class Interaction {
 	
 	// the current page 
 	public InteractionPage currentPage = null;
+	
+	// is the interaction about to end? (Delayed for any last messages)
+	public boolean queueEndOfInteraction = false;
 	
 	
 	static public boolean registerEventListener( Plugin plugin ) {
@@ -118,7 +122,7 @@ public class Interaction {
 	}
 	
 	
-	public void endInteraction() {
+	public void endOfInteraction() {
 		sendQueuedMessages();
 		currentInteractions.remove( user );
 		formatter = null;
@@ -133,49 +137,50 @@ public class Interaction {
 	public void acceptInput( String input ) {
 		String universalInput = input.toLowerCase().trim();
 		// exit the conversation if input matches one of the exit strings
-		if ( exitStrings.contains( universalInput ) ) {
-			endInteraction();
-			return;
-		}
+		if ( exitStrings.contains( universalInput ) )
+			queueEndOfInteraction = true;
 		// return to the previous page, if input matches one of the return strings
-		if ( returnStrings.contains( universalInput ) ) {
+		if ( ( !queueEndOfInteraction ) & ( returnStrings.contains( universalInput ) ) ) {
 			pages.add( 0, currentPage );
 			if ( history.size() > 1 ) {
 				currentPage = history.remove( history.size() - 1 );
 				display();
 			}
-			return;
+			queueEndOfInteraction = true;
 		}
 		// exit the conversation if there is no current page
-		if ( currentPage == null ) {
-			endInteraction();
-			return;
-		}
+		if ( currentPage == null )
+			queueEndOfInteraction = true;
 		try {
-			// validate input
-			Object validatedInput = input;
-			if ( validator != null )
-				validatedInput = validator.startValidation( validatedInput, currentPage );
-			if ( currentPage.validator != null )
-				validatedInput = currentPage.validator.startValidation( validatedInput, currentPage );
-			// pass input to the page to take action on
-			String reply = currentPage.inputHandler( this, validatedInput );
-			// progress to the next page.. unless the current page has a 'lock' on interaction
-			if ( pageWaitingForInput ) {
-				pageWaitingForInput = false;
-			} else {
-				history.add( currentPage );
-				if ( pages.size() > 0 )
-					currentPage = pages.remove( 0 );
-				else
-					currentPage = null;
+			if ( !queueEndOfInteraction ) {
+				// validate input
+				Object validatedInput = input;
+				if ( validator != null )
+					validatedInput = validator.startValidation( validatedInput, currentPage );
+				if ( currentPage.validator != null )
+					validatedInput = currentPage.validator.startValidation( validatedInput, currentPage );
+				// pass input to the page to take action on
+				String reply = currentPage.inputHandler( this, validatedInput );
+				// progress to the next page.. unless the current page has a 'lock' on interaction
+				if ( pageWaitingForInput ) {
+					pageWaitingForInput = false;
+				} else {
+					history.add( currentPage );
+					if ( pages.size() > 0 )
+						currentPage = pages.remove( 0 );
+					else
+						currentPage = null;
+				}
+				// show the next / repeat page
+				display();
+				// if we had a reply from the last page, show it now (so the bottom of this page)
+				if ( reply != null )
+					if ( !reply.isEmpty() )
+						sendMessage( MessageType.RESPONSE, user, reply );
 			}
-			// show the next / repeat page
-			display();
-			// if we had a reply from the last page, show it now (so the bottom of this page)
-			if ( reply != null )
-				if ( !reply.isEmpty() )
-					sendMessage( MessageType.RESPONSE, user, reply );
+			// the actual end of the interaction happens last, so any final messages can be sent.
+			if ( queueEndOfInteraction )
+				endOfInteraction();
 		} catch ( ValidationFailedError error ) {
 			// display the current page again
 			display();
@@ -202,7 +207,7 @@ public class Interaction {
 			sendMessage( MessageType.ERROR, user, error.reason );
 		} catch ( AbortInteraction error ) {
 			sendMessage( MessageType.ERROR, user, error.message );
-			endInteraction();
+			endOfInteraction();
 		}
 	}
 	
@@ -234,7 +239,7 @@ public class Interaction {
 	
 	protected void display() {
 		if ( currentPage == null ) {
-			endInteraction();
+			queueEndOfInteraction = true;
 			return;
 		}
 		currentPage.style.putAll( style );
@@ -262,7 +267,7 @@ public class Interaction {
 			sendMessage( MessageType.ERROR, user, error.reason );
 		} catch ( AbortInteraction error ) {
 			sendMessage( MessageType.ERROR, user, error.message );
-			endInteraction();
+			endOfInteraction();
 		}
 	}
 	
