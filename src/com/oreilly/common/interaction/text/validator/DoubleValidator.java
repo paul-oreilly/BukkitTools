@@ -24,7 +24,7 @@ public class DoubleValidator extends Validator {
 		try {
 			Double parsed = Double.parseDouble( asString );
 			if ( isPercentage )
-				parsed *= 100;
+				parsed /= 100;
 			return parsed;
 		} catch ( NumberFormatException error ) {
 			throw new ValidationFailedError( this, "Unable to convert " + object.toString() + " to a number" );

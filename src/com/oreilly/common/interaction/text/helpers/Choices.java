@@ -40,7 +40,9 @@ public class Choices {
 	
 	
 	public void addAlias( Choice choice, String alias ) {
-		choices.put( alias.toLowerCase().trim(), choice );
+		// TODO: Alias's need to be added to a seperate data structure, as choices is
+		// used to generate choice lists in interactions - resulting in all alias being listed!
+		//choices.put( alias.toLowerCase().trim(), choice );
 	}
 	
 	
