@@ -55,8 +55,6 @@ public class VariableTool {
 				}
 				currentPosition = variableTagEnds + 1;
 			}
-			System.out.println( "Current: " + current );
-			System.out.println( "Result:  " + result + "\n" );
 			current = result;
 			result = "";
 			currentPosition = 0;

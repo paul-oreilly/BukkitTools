@@ -1,10 +1,10 @@
 package com.oreilly.common.interaction.text;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -280,21 +280,13 @@ public class Interaction {
 	
 	
 	public Interaction addPages( Collection< InteractionPage > collection ) {
-		Iterator< InteractionPage > iter = collection.iterator();
-		while ( iter.hasNext() )
-			pages.add( 0, iter.next() );
+		pages.addAll(0, collection);
 		return this;
 	}
 	
 	
 	public Interaction addPages( InteractionPage... pageList ) {
-		int i = pageList.length - 1;
-		while ( i >= 0 ) {
-			pages.add( 0, pageList[i] );
-			// add any style overwrites
-			pageList[i].withStyles( style );
-			i--;
-		}
+		addPages( Arrays.asList( pageList ) );
 		return this;
 	}
 	
