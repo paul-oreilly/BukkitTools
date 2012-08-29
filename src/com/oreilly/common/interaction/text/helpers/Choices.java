@@ -1,7 +1,7 @@
 package com.oreilly.common.interaction.text.helpers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 import com.oreilly.common.interaction.text.Interaction;
 import com.oreilly.common.interaction.text.InteractionPage;
@@ -12,7 +12,7 @@ import com.oreilly.common.interaction.text.error.GeneralInteractionError;
 
 public class Choices {
 	
-	HashMap< String, Choice > choices = new HashMap< String, Choice >();
+	TreeMap< String, Choice > choices = new TreeMap< String, Choice >();
 	String prependToNumber = "";
 	String appendToNumber = ". ";
 	
@@ -54,7 +54,7 @@ public class Choices {
 		// making a list... 
 		for ( String key : choices.keySet() ) {
 			Choice choice = choices.get( key );
-			result.add( 0, prependToNumber + key + appendToNumber + choice.text );
+			result.add( prependToNumber + key + appendToNumber + choice.text );
 		}
 		return result;
 	}
