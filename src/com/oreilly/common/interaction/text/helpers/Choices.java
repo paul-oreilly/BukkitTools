@@ -12,7 +12,7 @@ import com.oreilly.common.interaction.text.error.GeneralInteractionError;
 
 public class Choices {
 	
-	TreeMap< String, Choice > choices = new TreeMap< String, Choice >();
+	TreeMap< Integer, Choice > choices = new TreeMap< Integer, Choice >();
 	String prependToNumber = "";
 	String appendToNumber = ". ";
 	
@@ -54,9 +54,9 @@ public class Choices {
 		if ( appendToNumber == null )
 			appendToNumber = "";
 		// making a list... 
-		for ( String key : choices.keySet() ) {
-			Choice choice = choices.get( key );
-			result.add( prependToNumber + key + appendToNumber + choice.text );
+		for ( Integer i : choices.keySet() ) {
+			Choice choice = choices.get( i );
+			result.add( prependToNumber + i + appendToNumber + choice.text );
 		}
 		return result;
 	}
@@ -69,7 +69,7 @@ public class Choices {
 	
 	public Choice addInternalChoice( int number, String text, String returnValue ) {
 		ChoiceInternal choice = new ChoiceInternal( this, text, returnValue );
-		choices.put( Integer.toString( number ), choice );
+		choices.put( number, choice );
 		return choice;
 	}
 	
@@ -81,7 +81,7 @@ public class Choices {
 	
 	public Choice addPageChoice( int number, String text, InteractionPage... pages ) {
 		ChoicePage choice = new ChoicePage( this, text, pages );
-		choices.put( Integer.toString( number ), choice );
+		choices.put( number, choice );
 		return choice;
 	}
 	
@@ -93,7 +93,7 @@ public class Choices {
 	
 	public Choice addAbortChoice( int number, String text ) {
 		ChoiceAbort choice = new ChoiceAbort( this, text );
-		choices.put( Integer.toString( number ), choice );
+		choices.put( number, choice );
 		return choice;
 	}
 	
