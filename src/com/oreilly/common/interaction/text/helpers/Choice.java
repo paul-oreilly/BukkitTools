@@ -19,9 +19,8 @@ public class Choice {
 			this.text = text + "\n";
 	}
 	
-	
-	public Choice withAlias( String alias ) {
-		parent.addAlias( this, alias );
+	public Choice withAlias( String... aliasList ) {
+		parent.withAlias(this, aliasList);
 		return this;
 	}
 }

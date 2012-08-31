@@ -1,6 +1,7 @@
 package com.oreilly.common.interaction.text.helpers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeMap;
 
 import com.oreilly.common.interaction.text.Interaction;
@@ -10,9 +11,12 @@ import com.oreilly.common.interaction.text.error.ContextDataRequired;
 import com.oreilly.common.interaction.text.error.GeneralInteractionError;
 
 
+
+
 public class Choices {
 	
-	TreeMap< Integer, Choice > choices = new TreeMap< Integer, Choice >();
+	TreeMap< Integer, Choice > orderedChoices = new TreeMap< Integer, Choice >();
+	HashMap< String, Choice > choicesByKey = new HashMap< String, Choice >();
 	String prependToNumber = "";
 	String appendToNumber = ". ";
 	
@@ -32,17 +36,17 @@ public class Choices {
 	}
 	
 	
+	void withAlias( Choice choice, String... aliasList ) {
+		if ( aliasList != null )
+			for ( String key : aliasList )
+				choicesByKey.put( key, choice );
+	}
+	
+	
 	public Choices withNumberStyle( String prepend, String append ) {
 		prependToNumber = prepend;
 		appendToNumber = append;
 		return this;
-	}
-	
-	
-	public void addAlias( Choice choice, String alias ) {
-		// TODO: Alias's need to be added to a seperate data structure, as choices is
-		// used to generate choice lists in interactions - resulting in all alias being listed!
-		//choices.put( alias.toLowerCase().trim(), choice );
 	}
 	
 	
@@ -54,8 +58,8 @@ public class Choices {
 		if ( appendToNumber == null )
 			appendToNumber = "";
 		// making a list... 
-		for ( Integer i : choices.keySet() ) {
-			Choice choice = choices.get( i );
+		for ( Integer i : orderedChoices.keySet() ) {
+			Choice choice = orderedChoices.get( i );
 			result.add( prependToNumber + i + appendToNumber + choice.text );
 		}
 		return result;
@@ -63,45 +67,48 @@ public class Choices {
 	
 	
 	public Choice addInternalChoice( String text, String returnValue ) {
-		return addInternalChoice( choices.size() + 1, text, returnValue );
+		return addInternalChoice( orderedChoices.size() + 1, text, returnValue );
 	}
 	
 	
 	public Choice addInternalChoice( int number, String text, String returnValue ) {
 		ChoiceInternal choice = new ChoiceInternal( this, text, returnValue );
-		choices.put( number, choice );
+		orderedChoices.put( number, choice );
+		choicesByKey.put( Integer.toString( number ), choice );
 		return choice;
 	}
 	
 	
 	public Choice addPageChoice( String text, InteractionPage... pages ) {
-		return addPageChoice( choices.size() + 1, text, pages );
+		return addPageChoice( orderedChoices.size() + 1, text, pages );
 	}
 	
 	
 	public Choice addPageChoice( int number, String text, InteractionPage... pages ) {
 		ChoicePage choice = new ChoicePage( this, text, pages );
-		choices.put( number, choice );
+		orderedChoices.put( number, choice );
+		choicesByKey.put( Integer.toString( number ), choice );
 		return choice;
 	}
 	
 	
 	public Choice addAbortChoice( String text ) {
-		return addAbortChoice( choices.size() + 1, text );
+		return addAbortChoice( orderedChoices.size() + 1, text );
 	}
 	
 	
 	public Choice addAbortChoice( int number, String text ) {
 		ChoiceAbort choice = new ChoiceAbort( this, text );
-		choices.put( number, choice );
+		orderedChoices.put( number, choice );
+		choicesByKey.put( Integer.toString( number ), choice );
 		return choice;
 	}
 	
 	
 	public String takeAction( InteractionPage page, Interaction interaction, Object data ) throws AbortInteraction,
 			ContextDataRequired, GeneralInteractionError {
-		String key = data.toString().toLowerCase().trim();
-		Choice choice = choices.get( key );
+		String key = data.toString().trim();
+		Choice choice = choicesByKey.get( key );
 		if ( choice == null )
 			throw new GeneralInteractionError( "Unable to determine your choice based on \"" + data.toString() + "\"" );
 		if ( choice instanceof ChoiceAbort )
@@ -118,5 +125,4 @@ public class Choices {
 		// otherwise...
 		throw new GeneralInteractionError( "Unsupported choice type" );
 	}
-	
 }

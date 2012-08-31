@@ -16,6 +16,7 @@ import com.oreilly.common.text.VariableTool;
 
 // TODO: "Loopback" method, which pops this page back into the front of the queue
 // TODO: "Bookmark" method, which adds this page to the bookmark stack (for when player uses "back" command)
+// TODO: Decision on pagination doesn't send proposed text to formatter - so misses lines added by border.
 
 abstract public class InteractionPage {
 	
@@ -71,8 +72,7 @@ abstract public class InteractionPage {
 		if ( translationKey != null )
 			return translationKey;
 		else {
-			String[] split = this.getClass().getName().split("\\.");
-			return split[ split.length - 1 ];
+			return this.getClass().getSimpleName();
 		}
 	}
 	
