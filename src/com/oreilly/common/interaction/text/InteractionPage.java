@@ -68,11 +68,15 @@ abstract public class InteractionPage {
 	
 	// translations
 	
-	public String getTranslationKey() {
+	public String getTranslationKey( Interaction interaction ) {
 		if ( translationKey != null )
 			return translationKey;
 		else {
-			return this.getClass().getSimpleName();
+			String customKey = getCustomTranslationKey( interaction );
+			if ( customKey != null )
+				return customKey;
+			else
+				return this.getClass().getSimpleName();
 		}
 	}
 	
@@ -85,18 +89,18 @@ abstract public class InteractionPage {
 	
 	// Title functions
 	
-	public String titleOverrideKey() {
-		return getTranslationKey() + ".titleOverride";
+	public String titleOverrideKey( Interaction interaction ) {
+		return getTranslationKey( interaction ) + ".titleOverride";
 	}
 	
 	
 	public String getTitle( Interaction interaction ) {
-		Object overrideObj = interaction.context.get( titleOverrideKey() );
+		Object overrideObj = interaction.context.get( titleOverrideKey( interaction ) );
 		if ( overrideObj != null )
 			return overrideObj.toString();
 		else {
 			if ( translatableTitle )
-				return VariableTool.variable( getTranslationKey() + ".title" );
+				return VariableTool.variable( getTranslationKey( interaction ) + ".title" );
 			else
 				return defaultTitle;
 		}
@@ -108,7 +112,7 @@ abstract public class InteractionPage {
 		// TOOD: Pagination support...
 		// see if we have an active paginator
 		PaginationAssistant paginator = interaction.getContextData(
-				PaginationAssistant.class, interaction, getTranslationKey() + "_paginator" );
+				PaginationAssistant.class, interaction, getTranslationKey( interaction ) + "_paginator" );
 		if ( paginator != null ) {
 			return paginator.getDisplayText();
 		} else {
@@ -123,7 +127,7 @@ abstract public class InteractionPage {
 				if ( text.split( "\n" ).length + choiceText.split( "\n" ).length + 1> maxLines ) {
 					// we'll need a paginator
 					paginator = new PaginationAssistant( choiceText, maxLines, text );
-					interaction.context.put( getTranslationKey() + "_paginator", paginator );
+					interaction.context.put( getTranslationKey( interaction ) + "_paginator", paginator );
 					return paginator.getDisplayText();
 				} else
 					return text + "\n" + choiceText;
@@ -131,7 +135,7 @@ abstract public class InteractionPage {
 				String text = generateDisplayBody( interaction );
 				if ( text.split( "\n" ).length > maxLines ) {
 					paginator = new PaginationAssistant( text, maxLines, "" );
-					interaction.context.put( getTranslationKey() + "_paginator", paginator );
+					interaction.context.put( getTranslationKey( interaction ) + "_paginator", paginator );
 					return paginator.getDisplayText();
 				} else
 					return text;
@@ -148,13 +152,8 @@ abstract public class InteractionPage {
 	
 	public String generateDisplayBody( Interaction interaction ) {
 		String text = null;
-		if ( translatableBody ) {
-			String customKey = getCustomTranslationKey( interaction );
-			if ( customKey == null )
-				text = VariableTool.variable( getTranslationKey() + ".text" );
-			else
-				text = customKey;
-		}
+		if ( translatableBody )
+			text = VariableTool.variable( getTranslationKey( interaction ) + ".text" );
 		else
 			text = getText();
 		return interaction.parseMessage( text );
@@ -170,7 +169,7 @@ abstract public class InteractionPage {
 			GeneralInteractionError, AbortInteraction {
 		// first, check for pagination...
 		PaginationAssistant paginator = interaction.getContextData(
-				PaginationAssistant.class, interaction, getTranslationKey() + "_paginator" );
+				PaginationAssistant.class, interaction, getTranslationKey( interaction ) + "_paginator" );
 		if ( paginator != null ) {
 			boolean paginationCommand = paginator.processPageCommand( data.toString() );
 			if ( paginationCommand ) {
@@ -180,7 +179,7 @@ abstract public class InteractionPage {
 				// it wasn't a pagination command, so we kill the paginator
 				// so we don't end up with a cache of old data if the player
 				// comes back to this interaction page
-				interaction.context.remove( getTranslationKey() + "_paginator" );
+				interaction.context.remove( getTranslationKey( interaction ) + "_paginator" );
 			}
 		}
 		// if we don't have pagination (or it wasn't a pagination command..)
