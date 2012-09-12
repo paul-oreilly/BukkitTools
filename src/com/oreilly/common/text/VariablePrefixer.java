@@ -1,5 +1,6 @@
 package com.oreilly.common.text;
 
+import com.oreilly.common.interaction.text.Interaction;
 import com.oreilly.common.interaction.text.InteractionPage;
 
 
@@ -18,8 +19,8 @@ public class VariablePrefixer {
 	}
 	
 	
-	public VariablePrefixer( InteractionPage page ) {
-		prefix = page.getTranslationKey() + ".";
+	public VariablePrefixer( InteractionPage page, Interaction interaction ) {
+		prefix = page.getTranslationKey( interaction ) + ".";
 	}
 	
 	

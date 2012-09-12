@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -123,9 +122,10 @@ public class Interaction {
 	
 	
 	public void endOfInteraction() {
-		// 'flush' the display
+		// let user know the interaction is finished...
 		if ( user instanceof Player )
-			user.sendMessage( StringUtils.repeat("\n", 30));
+			for ( int i =0; i < 20; i++ )
+				user.sendMessage(" ");
 		// send any messages from other players
 		sendQueuedMessages();
 		// reset data values for easier garbage collection.
