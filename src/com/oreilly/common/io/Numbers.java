@@ -1,5 +1,9 @@
 package com.oreilly.common.io;
 
+import java.text.DecimalFormat;
+
+import org.apache.commons.lang.StringUtils;
+
 public class Numbers {
 	
 	public static String doubleAsPercentage( double value ) {
@@ -8,12 +12,8 @@ public class Numbers {
 	
 	
 	public static String doubleAsPercentage( double value, int decimalCount ) {
-		String beforeDecimalPoint = Integer.toString( (int)( value * 100 ) );
-		String decimalOnwards = "";
-		if ( decimalCount > 0 )
-			decimalOnwards = "." +
-					Integer.toString( (int)( ( value - Math.floor( value ) ) * Math.pow( 10, decimalCount ) ) );
-		return beforeDecimalPoint + decimalOnwards + "%";
+		DecimalFormat f = new DecimalFormat( "#,##0." + StringUtils.repeat( "0", decimalCount ) + "%" );
+		return f.format( value );
 	}
 	
 	
